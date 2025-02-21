@@ -3,78 +3,102 @@
 ## 🚀 Overview
 RhyMath is designed to maintain conversation history and provide intelligent responses using a fine-tuned GPT-2 model. Additionally, it features an integrated **math solver** using SymPy to handle calculations, differentiation, integration, equations, limits, and matrix operations. It can also generate **poems** based on user input, making it a creative AI assistant.
 
-## 📂 Project Structure
+## 💂️ Project Structure
 ```
-/ai-chatbot-project
 │── dataset.py         # Handles data processing and chatbot training
 │── rhymath.py         # Main script to run RhyMath
+│── api.py             # Backend API for UI integration
 │── requirements.txt   # Dependencies for the project
 │── README.md          # Project documentation
 │── conversation_data.json # Stores conversation history
 │── chatbot_model/     # Model storage directory
-```
+│── rhymath-ui/        # React-based frontend UI
+```  
 
-## 🛠️ Setup Instructions
-### 1️⃣ Install Dependencies
-Make sure you have Python 3.8+ installed, then install the required dependencies:
+## 🛠️ Setup Instructions  
+### 1️⃣ Install Backend Dependencies  
+Ensure Python 3.8+ is installed, then install the required dependencies:  
 ```sh
 pip install -r requirements.txt
-```
+```  
 
-### 2️⃣ Download & Initialize the Model
-RhyMath uses a **GPT-2** model. Before running it, initialize the model:
-```python
-from dataset import ChatbotTrainer
-chatbot_trainer = ChatbotTrainer()
-chatbot_trainer.initialize_model()
-```
-
-### 3️⃣ Run RhyMath
-Start the chatbot interface with:
+### 2️⃣ Install Frontend Dependencies  
+Navigate to the frontend folder and install dependencies:  
 ```sh
-python rhymath.py
+cd rhymath-ui  
+npm install  
+```  
+
+### 3️⃣ Download & Initialize the Model  
+Before running the backend, initialize the model:  
+```python
+from dataset import ChatbotTrainer  
+chatbot_trainer = ChatbotTrainer()  
+chatbot_trainer.initialize_model()  
+```  
+
+---
+
+## 🚀 Running the Project  
+### Start Backend Server  
+Run the backend service:  
+```sh
+python3 api.py  
 ```
+Or using Uvicorn:
+```sh
+uvicorn api:app --host 0.0.0.0 --port 8000 --reload
+```  
+
+### Start Frontend UI  
+In a separate terminal, start the React frontend:  
+```sh
+cd rhymath-ui  
+npm start  
+```  
+
+The application will be available at `http://localhost:3000`. 🎯
 
 ## 🧠 Features
 ✅ **Memory-Based Conversations** – Maintains a short-term conversation history (last 5 interactions).  
 ✅ **GPT-2 Response Generation** – Generates human-like responses using GPT-2.  
 ✅ **Poem Generation** – Creates original poetry based on user prompts.  
 ✅ **Math Solver** – Handles complex mathematical expressions using SymPy.  
-✅ **Equation Solving** – Solves algebraic equations like `solve x**2 - 4*x + 4 = 0`.  
-✅ **Differentiation & Integration** – Computes derivatives and integrals, e.g., `differentiate x**3 + 6x`.  
+✅ **Equation Solving** – Solves algebraic equations like `solve x^2 + 5*x + 6 = 0`.  
+✅ **Differentiation & Integration** – Computes derivatives and integrals, e.g., `differentiate x^3 + 6*x`.  
 ✅ **Trigonometry & Logarithms** – Supports functions like `sin(x)`, `log(x)`, etc.  
-✅ **Matrix Operations** – Computes determinants and inverses of matrices.  
+✅ **Matrix Operations** – Computes determinants, inverses, and matrix multiplications.  
 
 ## 🎯 Usage Examples
 ```sh
-User: solve x**2 - 4*x + 4 = 0
-RhyMath: ✅ Solution: [2]
-
-User: differentiate x**3 + 6*x
-RhyMath: ✅ Derivative: 3*x**2 + 6
-
-User: integrate sin(x) + x**2
-RhyMath: ✅ Integral: -cos(x) + x**3/3
-
-User: matrix [1 2; 3 4]
-RhyMath: ✅ Determinant: -2
-       ✅ Inverse:
-       [-2  1]
-       [1  -0.5]
-
 User: Write a poem about the ocean
 RhyMath: 🌊 The ocean whispers, deep and wide,
         Its waves embrace the changing tide...
+
+User: solve x^2 + 5*x + 6 = 0
+RhyMath: ✅ Solution: x = -2, x = -3
+
+User: differentiate x^3 + 6*x
+RhyMath: ✅ Derivative: 3*x^2 + 6
+
+User: integrate sin(x) + x^2
+RhyMath: ✅ Integral: -cos(x) + x^3/3 + C
+
+User: matrix [[1, 2], [3, 4]] determinant
+RhyMath: ✅ Determinant: -2
+       ✅ Inverse:
+       [[-2  1]
+        [ 1 -0.5]]
 ```
 
 ## 🤝 Contribution
 Feel free to contribute! Fork the repository, create a branch, make improvements, and submit a pull request.
 
-<!--## 📜 License
+<!--## 🌜 License
 This project is open-source under the MIT License.
-
+-->
 ## 🔗 Connect
-📧 **Email**: chauhanshivam2310@gmail.com , yashpundeer0@gmail.com  
- 🌐 **Website**: your-website.com --> 
+📧 **Email**: chauhanshivam2310@gmail.com , yashpundeer0@gmail.com
+<!-- 🌐 **Website**: your-website.com -->
 🚀 **#LetsGrowTogether**
 
