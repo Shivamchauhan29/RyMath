@@ -9,6 +9,7 @@ from dataset import ChatbotTrainer
 from fastapi import FastAPI
 from pydantic import BaseModel
 import re
+from math_scraper import get_wikipedia_summary
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -70,6 +71,16 @@ FRIENDLY_RESPONSES = [
     "I'm all ears! What else do you have to share?",
     "That sounds like fun! What's next on your mind?"
 ]
+# def fetch_math_info(query):
+#     print(f"Fetching math info for: {query}")  # Debugging statement
+#     try:
+#         result = get_wikipedia_summary(query)
+#         print(f"Scraper returned: {result[:200]}...")  # Print first 200 characters to check output
+#         return result
+#     except Exception as e:
+#         print(f"Error in fetch_math_info: {str(e)}")  # Debugging error
+#         return f"Could not fetch data: {str(e)}"
+
 
 def detect_intent(user_input):
     stop_words = set(stopwords.words('english'))
@@ -79,6 +90,8 @@ def detect_intent(user_input):
     # Define intents based on keywords
     if any(word in filtered_tokens for word in ["solve", "simplify", "differentiate", "integrate", "derivative"]):
         return "math"
+    elif "math info" in user_input.lower():
+        return "math_info"
     elif "poem" in filtered_tokens or "paragraph" in filtered_tokens:
         return "poem"
     elif "grammar" in filtered_tokens:
@@ -327,6 +340,9 @@ def chatbot():
             print("Training complete! I'm ready to chat better now!")
         elif intent == "greeting":
             print(f"Hi {name}! How can I brighten your day today?")
+        # elif intent == "math_info":
+        #     query = user_input.replace("math info", "").strip()
+        #     print(fetch_math_info(query))
         elif intent == "chat":
             response = chatbot_trainer.generate_response(user_input)
             print(response)

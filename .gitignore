@@ -10,3 +10,6 @@ __pycache__/
 
 #conversation data
 conversation_data.json
+
+#testing file
+test.py
