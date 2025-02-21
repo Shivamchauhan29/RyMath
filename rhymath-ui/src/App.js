@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import axios from "axios";
+import { MathJax, MathJaxContext } from "better-react-mathjax";
+import "./App.css"; 
 
 function App() {
   const [input, setInput] = useState("");
@@ -17,9 +19,11 @@ function App() {
         { headers: { "Content-Type": "application/json" } }
       );
 
+      // If your backend always returns LaTeX for math,
+      // we can force isMath = true, or detect it dynamically.
       setMessages([
         ...newMessages,
-        { user: "RhyMath", text: response.data.response }
+        { user: "RhyMath", text: response.data.response, isMath: true }
       ]);
     } catch (error) {
       console.error("Error fetching response:", error);
@@ -30,22 +34,30 @@ function App() {
   };
 
   return (
-    <div className="chat-container">
-      <div className="chat-box">
-        {messages.map((msg, index) => (
-          <div key={index} className={`message ${msg.user === "You" ? "user" : "bot"}`}>
-            <strong>{msg.user}:</strong> {msg.text}
-          </div>
-        ))}
+    <MathJaxContext>
+      <div className="chat-container">
+        <div className="chat-box">
+          {messages.map((msg, index) => (
+            <div key={index} className={`message ${msg.user === "You" ? "user" : "bot"}`}>
+              <strong>{msg.user}:</strong> 
+              {msg.isMath ? (
+                // Wrap in $$...$$ for display math
+                <MathJax>{"$$" + msg.text + "$$"}</MathJax>
+              ) : (
+                msg.text
+              )}
+            </div>
+          ))}
+        </div>
+        <input 
+          value={input} 
+          onChange={(e) => setInput(e.target.value)} 
+          placeholder="Type your message..."
+          onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+        />
+        <button onClick={sendMessage}>Send</button>
       </div>
-      <input 
-        value={input} 
-        onChange={(e) => setInput(e.target.value)} 
-        placeholder="Type your message..."
-        onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-      />
-      <button onClick={sendMessage}>Send</button>
-    </div>
+    </MathJaxContext>
   );
 }
 
