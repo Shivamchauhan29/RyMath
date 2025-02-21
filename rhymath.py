@@ -8,6 +8,7 @@ import random
 from dataset import ChatbotTrainer
 from fastapi import FastAPI
 from pydantic import BaseModel
+import re
 from fastapi.middleware.cors import CORSMiddleware
 
 
@@ -97,7 +98,7 @@ def handle_invalid_input(user_input):
         return "Hmm, I didn't quite get that. Could you clarify what you're asking?"
     return None
 
-import sympy as sp
+
 
 def calculate_math(expression):
     print('expression:', expression)
@@ -107,7 +108,8 @@ def calculate_math(expression):
         # Define symbols
         x, y = sp.symbols('x y')
 
-        # Clean the expression
+        # Clean the expression:
+        # Remove keywords, remove any dollar signs, and strip spaces.
         clean_expr = (expression
                       .replace("differentiate", "")
                       .replace("derivative", "")
@@ -116,98 +118,69 @@ def calculate_math(expression):
                       .replace("solve", "")
                       .replace("limit", "")
                       .replace("matrix", "")
+                      .replace("$", "")
                       .strip())
+        # Replace caret (^) with exponentiation operator (**)
+        clean_expr = clean_expr.replace("^", "**")
+        # Insert multiplication signs between digits and letters (e.g. 5x -> 5*x)
+        clean_expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', clean_expr)
 
         steps = []  # Store steps for LaTeX rendering
 
-        # ============================================================
-        # 1) SOLVING EQUATIONS (With Step-by-Step for Linear/Quadratic)
-        # ============================================================
+        # **Solving Equations with Steps**
         if "solve" in expression:
-            # Split into LHS, RHS
             lhs, rhs = clean_expr.split("=")
             eq = sp.Eq(sp.sympify(lhs, locals={'x': x, 'y': y}),
                        sp.sympify(rhs, locals={'x': x, 'y': y}))
-
-            # Convert to polynomial form (if possible)
+            # Try to form a polynomial in x
             poly_expr = eq.lhs - eq.rhs
             poly = sp.poly(poly_expr, x)
             deg = poly.degree()
 
             steps.append(f"\\text{{Given Equation: }} {sp.latex(eq)}")
 
-            # -----------------------------------------
-            # Linear: ax + b = 0
-            # -----------------------------------------
+            # Linear equation: ax + b = 0
             if deg == 1:
-                # Extract coefficients [a, b]
-                # For eq: a*x + b = 0
                 a, b = poly.all_coeffs()  # [a, b]
-
-                # Step 1: Show original
-                # Already in steps[0]
-
-                # Step 2: Subtract constant from both sides
-                # a*x + b = 0  -->  a*x = -b
                 steps.append(
                     f"\\text{{Subtract {sp.latex(b)} from both sides: }} "
                     f"{sp.latex(sp.Eq(a*x, -b))}"
                 )
-
-                # Step 3: Divide by 'a'
-                # x = -b/a
                 x_sol = -b/a
                 steps.append(
                     f"\\text{{Divide by {sp.latex(a)}: }} "
                     f"{sp.latex(sp.Eq(x, x_sol))}"
                 )
-
-                # Return the final result
                 steps_str = " \\\\ ".join(steps)
                 latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
                 return latex_output
 
-            # -----------------------------------------
-            # Quadratic: ax^2 + bx + c = 0
-            # -----------------------------------------
+            # Quadratic equation: ax^2 + bx + c = 0
             elif deg == 2:
-                # Extract coefficients [a, b, c]
-                # For eq: a*x^2 + b*x + c = 0
                 a, b, c = poly.all_coeffs()  # [a, b, c]
-
-                # Step 1: Show original
-                # Already in steps[0]
-
-                # Step 2: Quadratic formula
-                # x = (-b ± sqrt(b^2 - 4ac)) / (2a)
-                discriminant = sp.sqrt(b**2 - 4*a*c)
-                x_plus  = (-b + discriminant) / (2*a)
-                x_minus = (-b - discriminant) / (2*a)
-
                 steps.append(
                     "\\text{Quadratic Formula: } x = "
                     f"\\frac{{-b \\pm \\sqrt{{b^2 - 4ac}}}}{{2a}}"
                 )
+                discriminant = sp.sqrt(b**2 - 4*a*c)
                 steps.append(f"\\text{{Discriminant: }} {sp.latex(discriminant)}")
+                x_plus  = (-b + discriminant) / (2*a)
+                x_minus = (-b - discriminant) / (2*a)
                 steps.append(
                     f"\\text{{Solution 1: }} {sp.latex(sp.simplify(x_plus))}"
                 )
                 steps.append(
                     f"\\text{{Solution 2: }} {sp.latex(sp.simplify(x_minus))}"
                 )
-
                 steps_str = " \\\\ ".join(steps)
                 latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
                 return latex_output
 
-            # -----------------------------------------
-            # Higher-degree or Non-Polynomial:
-            # fallback to sp.solve
-            # -----------------------------------------
+            # For higher-degree equations or non-polynomials: fallback to sp.solve
             else:
                 solution = sp.solve(eq, x)
                 if isinstance(solution, list):
@@ -215,84 +188,64 @@ def calculate_math(expression):
                         steps.append(f"\\text{{Solution {idx}: }} {sp.latex(sol)}")
                 else:
                     steps.append(f"\\text{{Solution: }} {sp.latex(solution)}")
-
                 steps_str = " \\\\ ".join(steps)
                 latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
                 return latex_output
 
-        # ==========================================
-        # 2) SIMPLIFICATION WITH STEPS
-        # ==========================================
+        # **Simplification with Steps**
         elif "simplify" in expression:
             expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
             simplified_expr = sp.simplify(expr)
-
             steps.append(f"\\text{{Original Expression: }} {sp.latex(expr)}")
             steps.append(f"\\text{{Simplified Expression: }} {sp.latex(simplified_expr)}")
-
             steps_str = " \\\\ ".join(steps)
             latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
             return latex_output
 
-        # ==========================================
-        # 3) DIFFERENTIATION WITH STEPS
-        # ==========================================
+        # **Differentiation with Steps**
         elif "differentiate" in expression or "derivative" in expression:
             expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
             derivative = sp.diff(expr, x)
-
             steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
             steps.append(f"\\text{{Derivative: }} {sp.latex(derivative)}")
-
             steps_str = " \\\\ ".join(steps)
             latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
             return latex_output
 
-        # ==========================================
-        # 4) INTEGRATION WITH STEPS
-        # ==========================================
+        # **Integration with Steps**
         elif "integrate" in expression:
             expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
             integral = sp.integrate(expr, x)
-
             steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
             steps.append(f"\\text{{Integral: }} {sp.latex(integral)}")
-
             steps_str = " \\\\ ".join(steps)
             latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
             return latex_output
 
-        # ==========================================
-        # 5) LIMITS
-        # ==========================================
+        # **Limits**
         elif "limit" in expression:
             limit_expr, point = clean_expr.split(" at ")
             limit_result = sp.limit(sp.sympify(limit_expr, locals={'x': x}), x, float(point))
-
             steps.append(f"\\text{{Limit Expression: }} {sp.latex(sp.sympify(limit_expr, locals={'x': x}))}")
             steps.append(f"\\text{{Limit Result: }} {sp.latex(limit_result)}")
-
             steps_str = " \\\\ ".join(steps)
             latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
             return latex_output
 
-        # ==========================================
-        # 6) GENERAL MATH EVALUATION
-        # ==========================================
+        # **General Math Evaluation**
         else:
             result = sp.sympify(expression, locals={'x': x, 'y': y})
             steps.append(f"\\text{{Expression: }} {sp.latex(result)}")
-
             steps_str = " \\\\ ".join(steps)
             latex_output = rf"""\begin{{aligned}}
 {steps_str}
