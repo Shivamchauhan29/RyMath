@@ -2,25 +2,21 @@ body {
   font-family: Arial, sans-serif;
   background-color: #343541;
   color: white;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100vh;
   margin: 0;
+  height: 100vh;
+  display: flex;
   flex-direction: column;
+  position: relative;
 }
 
 .chat-container {
   width: 100%;
-  max-width: 900px;
+  height: calc(100vh - 80px);
   display: flex;
   flex-direction: column;
   background-color: #40414F;
-  border-radius: 8px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
   overflow: hidden;
-  height: 85vh;
-  position: relative;
+  padding-bottom: 80px;
 }
 
 .chat-box {
@@ -30,7 +26,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-height: calc(100% - 70px);
 }
 
 .message {
@@ -54,24 +49,43 @@ body {
 }
 
 .input-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
   display: flex;
+  justify-content: center;
   align-items: center;
   padding: 12px;
   background-color: #40414F;
   border-top: 1px solid #555;
-  position: absolute;
-  bottom: 0;
   width: 100%;
+  padding: 20px;
 }
 
 input {
-  flex: 1;
-  padding: 12px;
-  border: none;
-  background-color: #40414F;
+  width: 60%;
+  max-width: 800px;
+  padding: 14px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background-color: rgba(255, 255, 255, 0.05);
   color: white;
   font-size: 16px;
-  border-radius: 5px;
+  border-radius: 12px;
+  outline: none;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+input:hover {
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+input:focus {
+  border-color: #0b93f6;
+  background-color: rgba(255, 255, 255, 0.1);
+  box-shadow: 0 2px 8px rgba(11, 147, 246, 0.2);
 }
 
 input:focus {
@@ -85,15 +99,15 @@ button {
   color: white;
   font-size: 16px;
   cursor: pointer;
-  margin-left: 10px;
-  padding: 10px;
-  border-radius: 5px;
+  margin-left: 12px;
+  padding: 14px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 button:hover {
   background-color: #0a84d6;
-}
-.chat-container {
-  width: 90%;
-  max-width: 1100px;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
 }

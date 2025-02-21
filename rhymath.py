@@ -97,70 +97,114 @@ def handle_invalid_input(user_input):
         return "Hmm, I didn't quite get that. Could you clarify what you're asking?"
     return None
 
-
-import sympy as sp
-
-import sympy as sp
-
 def calculate_math(expression):
     print('expression:', expression)
     try:
         print('Math function triggered!')
-        
+
         # Define symbols
         x, y = sp.symbols('x y')
 
         # Clean the expression
-        clean_expr = expression.replace("differentiate", "").replace("derivative", "").replace("integrate", "").replace("simplify", "").replace("solve", "").replace("limit", "").replace("matrix", "").strip()
+        clean_expr = (expression
+                      .replace("differentiate", "")
+                      .replace("derivative", "")
+                      .replace("integrate", "")
+                      .replace("simplify", "")
+                      .replace("solve", "")
+                      .replace("limit", "")
+                      .replace("matrix", "")
+                      .strip())
 
-        # **Solving Equations**
+        steps = []  # Store steps for LaTeX rendering
+
+        # **Solving Equations with Steps**
         if "solve" in expression:
-            lhs, rhs = clean_expr.split("=")  # Split equation into left and right
-            solution = sp.solve(sp.Eq(sp.sympify(lhs, locals={'x': x, 'y': y}), sp.sympify(rhs, locals={'x': x, 'y': y})), x)
-            return f"✅ Solution: {solution}"
-        
-        # **Simplification**
+            lhs, rhs = clean_expr.split("=")
+            eq = sp.Eq(sp.sympify(lhs, locals={'x': x, 'y': y}),
+                       sp.sympify(rhs, locals={'x': x, 'y': y}))
+            solution = sp.solve(eq, x)
+
+            steps.append(f"\\text{{Given Equation: }} {sp.latex(eq)}")
+            if isinstance(solution, list):
+                for idx, sol in enumerate(solution, 1):
+                    steps.append(f"\\text{{Solution {idx}: }} {sp.latex(sol)}")
+            else:
+                steps.append(f"\\text{{Solution: }} {sp.latex(solution)}")
+
+            # Combine steps and wrap in aligned
+            steps_str = " \\\\ ".join(steps)
+            latex_output = rf"""\begin{{aligned}}
+{steps_str}
+\end{{aligned}}"""
+            return latex_output
+
+        # **Simplification with Steps**
         elif "simplify" in expression:
-            return f"✅ Simplified: {sp.simplify(clean_expr, locals={'x': x, 'y': y})}"
-        
-        # **Differentiation**
+            expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
+            simplified_expr = sp.simplify(expr)
+
+            steps.append(f"\\text{{Original Expression: }} {sp.latex(expr)}")
+            steps.append(f"\\text{{Simplified Expression: }} {sp.latex(simplified_expr)}")
+
+            steps_str = " \\\\ ".join(steps)
+            latex_output = rf"""\begin{{aligned}}
+{steps_str}
+\end{{aligned}}"""
+            return latex_output
+
+        # **Differentiation with Steps**
         elif "differentiate" in expression or "derivative" in expression:
-            derivative = sp.diff(sp.sympify(clean_expr, locals={'x': x, 'y': y}), x)
-            return f"✅ Derivative: {derivative}"
-        
-        # **Integration**
+            expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
+            derivative = sp.diff(expr, x)
+
+            steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
+            steps.append(f"\\text{{Derivative: }} {sp.latex(derivative)}")
+
+            steps_str = " \\\\ ".join(steps)
+            latex_output = rf"""\begin{{aligned}}
+{steps_str}
+\end{{aligned}}"""
+            return latex_output
+
+        # **Integration with Steps**
         elif "integrate" in expression:
-            integral = sp.integrate(sp.sympify(clean_expr, locals={'x': x, 'y': y}), x)
-            return f"✅ Integral: {integral}"
-        
+            expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
+            integral = sp.integrate(expr, x)
+
+            steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
+            steps.append(f"\\text{{Integral: }} {sp.latex(integral)}")
+
+            steps_str = " \\\\ ".join(steps)
+            latex_output = rf"""\begin{{aligned}}
+{steps_str}
+\end{{aligned}}"""
+            return latex_output
+
         # **Limits**
         elif "limit" in expression:
             limit_expr, point = clean_expr.split(" at ")
             limit_result = sp.limit(sp.sympify(limit_expr, locals={'x': x}), x, float(point))
-            return f"✅ Limit: {limit_result}"
-        
-        # **Trigonometric Functions**
-        elif any(fn in expression for fn in ["sin", "cos", "tan", "cot", "sec", "csc"]):
-            trig_result = sp.simplify(sp.sympify(clean_expr, locals={'x': x, 'y': y}))
-            return f"✅ Trigonometric Result: {trig_result}"
-        
-        # **Logarithm**
-        elif "log" in expression:
-            log_result = sp.simplify(sp.sympify(clean_expr, locals={'x': x, 'y': y}))
-            return f"✅ Logarithm Result: {log_result}"
-        
-        # **Matrix Operations**
-        elif "matrix" in expression:
-            rows = clean_expr.strip("[]").split(";")  # Convert input to matrix format
-            matrix = sp.Matrix([[sp.sympify(num) for num in row.split()] for row in rows])
-            determinant = matrix.det()
-            inverse = matrix.inv() if matrix.det() != 0 else "Not Invertible"
-            return f"✅ Matrix:\n{matrix}\n✅ Determinant: {determinant}\n✅ Inverse: {inverse}"
-        
+
+            steps.append(f"\\text{{Limit Expression: }} {sp.latex(sp.sympify(limit_expr, locals={'x': x}))}")
+            steps.append(f"\\text{{Limit Result: }} {sp.latex(limit_result)}")
+
+            steps_str = " \\\\ ".join(steps)
+            latex_output = rf"""\begin{{aligned}}
+{steps_str}
+\end{{aligned}}"""
+            return latex_output
+
         # **General Math Evaluation**
         else:
             result = sp.sympify(expression, locals={'x': x, 'y': y})
-            return f"✅ The result is: {result}"
+            steps.append(f"\\text{{Expression: }} {sp.latex(result)}")
+
+            steps_str = " \\\\ ".join(steps)
+            latex_output = rf"""\begin{{aligned}}
+{steps_str}
+\end{{aligned}}"""
+            return latex_output
 
     except (sp.SympifyError, TypeError, ValueError, IndexError, ZeroDivisionError) as e:
         return f"❌ Oops! I couldn't understand the math expression. Error: {str(e)}"
