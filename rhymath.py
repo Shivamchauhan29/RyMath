@@ -6,6 +6,33 @@ from nltk.tokenize import word_tokenize
 from nltk.corpus import stopwords
 import random
 from dataset import ChatbotTrainer
+from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+
+
+app = FastAPI()
+
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Change this to your frontend URL for security
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+
+class ChatRequest(BaseModel):
+    message: str
+
+@app.post("/chat")
+def chat(request: ChatRequest):
+    user_message = request.message
+    return {"response": f"You said: {user_message}"}
+
+
 
 # Initialize chatbot trainer
 chatbot_trainer = ChatbotTrainer()
@@ -76,6 +103,7 @@ import sympy as sp
 import sympy as sp
 
 def calculate_math(expression):
+    print('expression:', expression)
     try:
         print('Math function triggered!')
         
@@ -225,3 +253,4 @@ def chatbot():
 
 if __name__ == "__main__":
     chatbot()
+
