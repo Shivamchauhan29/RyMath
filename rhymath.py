@@ -142,7 +142,11 @@ def calculate_math(expression):
 
         # **Solving Equations with Steps**
         if "solve" in expression:
-            lhs, rhs = clean_expr.split("=")
+            if "=" in clean_expr:
+                lhs, rhs = clean_expr.split("=")
+            else:
+                lhs, rhs = clean_expr, "0"  # Assume the equation is set to 0
+
             eq = sp.Eq(sp.sympify(lhs, locals={'x': x, 'y': y}),
                        sp.sympify(rhs, locals={'x': x, 'y': y}))
             # Try to form a polynomial in x
