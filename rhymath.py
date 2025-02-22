@@ -112,17 +112,14 @@ def handle_invalid_input(user_input):
     return None
 
 
-
 def calculate_math(expression):
     print('expression:', expression)
     try:
         print('Math function triggered!')
 
-        # Define symbols
         x, y = sp.symbols('x y')
 
         # Clean the expression:
-        # Remove keywords, remove any dollar signs, and strip spaces.
         clean_expr = (expression
                       .replace("differentiate", "")
                       .replace("derivative", "")
@@ -133,144 +130,74 @@ def calculate_math(expression):
                       .replace("matrix", "")
                       .replace("$", "")
                       .strip())
-        # Replace caret (^) with exponentiation operator (**)
         clean_expr = clean_expr.replace("^", "**")
-        # Insert multiplication signs between digits and letters (e.g. 5x -> 5*x)
         clean_expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', clean_expr)
 
-        steps = []  # Store steps for LaTeX rendering
+        steps = []
 
-        # **Solving Equations with Steps**
+        # Solve Equations (including Trigonometry)
         if "solve" in expression:
             if "=" in clean_expr:
                 lhs, rhs = clean_expr.split("=")
             else:
-                lhs, rhs = clean_expr, "0"  # Assume the equation is set to 0
+                lhs, rhs = clean_expr, "0"
 
             eq = sp.Eq(sp.sympify(lhs, locals={'x': x, 'y': y}),
                        sp.sympify(rhs, locals={'x': x, 'y': y}))
-            # Try to form a polynomial in x
-            poly_expr = eq.lhs - eq.rhs
-            poly = sp.poly(poly_expr, x)
-            deg = poly.degree()
 
             steps.append(f"\\text{{Given Equation: }} {sp.latex(eq)}")
 
-            # Linear equation: ax + b = 0
-            if deg == 1:
-                a, b = poly.all_coeffs()  # [a, b]
-                steps.append(
-                    f"\\text{{Subtract {sp.latex(b)} from both sides: }} "
-                    f"{sp.latex(sp.Eq(a*x, -b))}"
-                )
-                x_sol = -b/a
-                steps.append(
-                    f"\\text{{Divide by {sp.latex(a)}: }} "
-                    f"{sp.latex(sp.Eq(x, x_sol))}"
-                )
-                steps_str = " \\\\ ".join(steps)
-                latex_output = rf"""\begin{{aligned}}
-{steps_str}
-\end{{aligned}}"""
-                return latex_output
+            solution_steps = sp.solve(eq, x, dict=True)
+            for step in solution_steps:
+                steps.append(f"\\text{{Solving: }} {sp.latex(step)}")
 
-            # Quadratic equation: ax^2 + bx + c = 0
-            elif deg == 2:
-                a, b, c = poly.all_coeffs()  # [a, b, c]
-                steps.append(
-                    "\\text{Quadratic Formula: } x = "
-                    f"\\frac{{-b \\pm \\sqrt{{b^2 - 4ac}}}}{{2a}}"
-                )
-                discriminant = sp.sqrt(b**2 - 4*a*c)
-                steps.append(f"\\text{{Discriminant: }} {sp.latex(discriminant)}")
-                x_plus  = (-b + discriminant) / (2*a)
-                x_minus = (-b - discriminant) / (2*a)
-                steps.append(
-                    f"\\text{{Solution 1: }} {sp.latex(sp.simplify(x_plus))}"
-                )
-                steps.append(
-                    f"\\text{{Solution 2: }} {sp.latex(sp.simplify(x_minus))}"
-                )
-                steps_str = " \\\\ ".join(steps)
-                latex_output = rf"""\begin{{aligned}}
-{steps_str}
-\end{{aligned}}"""
-                return latex_output
+            steps.append(f"\\text{{Final Solution: }} {sp.latex(solution_steps)}")
 
-            # For higher-degree equations or non-polynomials: fallback to sp.solve
-            else:
-                solution = sp.solve(eq, x)
-                if isinstance(solution, list):
-                    for idx, sol in enumerate(solution, 1):
-                        steps.append(f"\\text{{Solution {idx}: }} {sp.latex(sol)}")
-                else:
-                    steps.append(f"\\text{{Solution: }} {sp.latex(solution)}")
-                steps_str = " \\\\ ".join(steps)
-                latex_output = rf"""\begin{{aligned}}
-{steps_str}
-\end{{aligned}}"""
-                return latex_output
-
-        # **Simplification with Steps**
+        # Simplification (including Trigonometric)
         elif "simplify" in expression:
             expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
-            simplified_expr = sp.simplify(expr)
             steps.append(f"\\text{{Original Expression: }} {sp.latex(expr)}")
-            steps.append(f"\\text{{Simplified Expression: }} {sp.latex(simplified_expr)}")
-            steps_str = " \\\\ ".join(steps)
-            latex_output = rf"""\begin{{aligned}}
-{steps_str}
-\end{{aligned}}"""
-            return latex_output
+            simplified_expr = sp.trigsimp(expr)
+            steps.append(f"\\text{{Step-by-step simplification: }} {sp.latex(simplified_expr)}")
 
-        # **Differentiation with Steps**
+        # Differentiation (including Trigonometry)
         elif "differentiate" in expression or "derivative" in expression:
             expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
-            derivative = sp.diff(expr, x)
             steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
-            steps.append(f"\\text{{Derivative: }} {sp.latex(derivative)}")
-            steps_str = " \\\\ ".join(steps)
-            latex_output = rf"""\begin{{aligned}}
-{steps_str}
-\end{{aligned}}"""
-            return latex_output
+            derivative = sp.diff(expr, x)
+            steps.append(f"\\text{{Derivative Step: }} {sp.latex(derivative)}")
 
-        # **Integration with Steps**
+        # Integration (including Trigonometry)
         elif "integrate" in expression:
             expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
-            integral = sp.integrate(expr, x)
             steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
-            steps.append(f"\\text{{Integral: }} {sp.latex(integral)}")
-            steps_str = " \\\\ ".join(steps)
-            latex_output = rf"""\begin{{aligned}}
-{steps_str}
-\end{{aligned}}"""
-            return latex_output
+            integral_steps = sp.integrate(expr, x, risch=True)
+            steps.append(f"\\text{{Step-by-step Integration: }} {sp.latex(integral_steps)}")
 
-        # **Limits**
+        # Limit
         elif "limit" in expression:
-            limit_expr, point = clean_expr.split(" at ")
-            limit_result = sp.limit(sp.sympify(limit_expr, locals={'x': x}), x, float(point))
-            steps.append(f"\\text{{Limit Expression: }} {sp.latex(sp.sympify(limit_expr, locals={'x': x}))}")
-            steps.append(f"\\text{{Limit Result: }} {sp.latex(limit_result)}")
-            steps_str = " \\\\ ".join(steps)
-            latex_output = rf"""\begin{{aligned}}
-{steps_str}
-\end{{aligned}}"""
-            return latex_output
+            try:
+                limit_expr, point = clean_expr.split(" at ")
+                steps.append(f"\\text{{Limit Expression: }} {sp.latex(sp.sympify(limit_expr, locals={'x': x}))}")
+                limit_result = sp.limit(sp.sympify(limit_expr, locals={'x': x}), x, float(point))
+                steps.append(f"\\text{{Limit Computation: }} {sp.latex(limit_result)}")
+            except ValueError:
+                return "❌ \\text{Invalid limit syntax. Use format: } \\text{limit(expr at point)}"
 
-        # **General Math Evaluation**
+        # General Math Evaluation
         else:
             result = sp.sympify(expression, locals={'x': x, 'y': y})
             steps.append(f"\\text{{Expression: }} {sp.latex(result)}")
-            steps_str = " \\\\ ".join(steps)
-            latex_output = rf"""\begin{{aligned}}
+
+        # Convert steps to a structured LaTeX format
+        steps_str = " \\\\ ".join(steps)
+        latex_output = rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
-            return latex_output
+        return latex_output
 
     except (sp.SympifyError, TypeError, ValueError, IndexError, ZeroDivisionError) as e:
-        return f"❌ Oops! I couldn't understand the math expression. Error: {str(e)}"
+        return f"❌ \\text{{Error: }} {str(e)}"
 
 def generate_poem(prompt):
     try:
