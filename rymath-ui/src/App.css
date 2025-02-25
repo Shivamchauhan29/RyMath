@@ -34,6 +34,7 @@ body {
   max-width: 75%;
   word-wrap: break-word;
   font-size: 16px;
+  position: relative;
 }
 
 .user {
@@ -47,6 +48,19 @@ body {
   background-color: #444654;
   color: white;
 }
+
+.math-message {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f5f5f5;
+  padding: 8px;
+  border-radius: 5px;
+  margin: 5px 0;
+  color: black;
+  position: relative;
+}
+
 
 .input-container {
   position: fixed;
