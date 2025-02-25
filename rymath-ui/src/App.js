@@ -23,11 +23,11 @@ function App() {
       // we can force isMath = true, or detect it dynamically.
       setMessages([
         ...newMessages,
-        { user: "RhyMath", text: response.data.response, isMath: true }
+        { user: "RyMath", text: response.data.response, isMath: true }
       ]);
     } catch (error) {
       console.error("Error fetching response:", error);
-      setMessages([...newMessages, { user: "RhyMath", text: "❌ Error: Could not get response." }]);
+      setMessages([...newMessages, { user: "RyMath", text: "❌ Error: Could not get response." }]);
     }
 
     setInput("");

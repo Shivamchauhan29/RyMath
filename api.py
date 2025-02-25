@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from rhymath import calculate_math, chatbot_trainer  
+from rymath import calculate_math, chatbot_trainer  
 
 app = FastAPI()
 
