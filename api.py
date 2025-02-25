@@ -31,6 +31,7 @@ def chat(request: ChatRequest):
     "derive": "differentiate",
     "diff": "differentiate",
     "d/dx": "differentiate",
+
     
     # Equation Solving / Finding Roots
     "solve": "solve",
@@ -39,20 +40,30 @@ def chat(request: ChatRequest):
     "zero": "solve",
     "zeroes": "solve",
     "zeros": "solve",
+
     
     # Simplification
     "simplify": "simplify",
     "reduction": "simplify",
+    "reducing": "simplify",
+    "reduce": "simplify",
+    "reduces": "simplify",
+
     
     # Integration
     "integrate": "integrate",
     "integral": "integrate",
     "integrals": "integrate",
+    "integration": "integrate",
+    "∫": "integrate",
+   
+
     
     # Limits
     "limit": "limit",
     "limits": "limit",
     "lim": "limit"
+    
 }
 
     
