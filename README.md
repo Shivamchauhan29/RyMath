@@ -1,18 +1,18 @@
-# RhyMath: AI Chatbot with Memory, Poem Generation, and Math Solver
+# RyMath: AI Chatbot with Memory, Poem Generation, and Math Solver
 
 ## 🚀 Overview
-RhyMath is designed to maintain conversation history and provide intelligent responses using a fine-tuned GPT-2 model. Additionally, it features an integrated **math solver** using SymPy to handle calculations, differentiation, integration, equations, limits, and matrix operations. It can also generate **poems** based on user input, making it a creative AI assistant.
+RyMath is designed to maintain conversation history and provide intelligent responses using a fine-tuned GPT-2 model. Additionally, it features an integrated **math solver** using SymPy to handle calculations, differentiation, integration, equations, limits, and matrix operations. It can also generate **poems** based on user input, making it a creative AI assistant.
 
 ## 💂️ Project Structure
 ```
 │── dataset.py         # Handles data processing and chatbot training
-│── rhymath.py         # Main script to run RhyMath
+│── rymath.py         # Main script to run RyMath
 │── api.py             # Backend API for UI integration
 │── requirements.txt   # Dependencies for the project
 │── README.md          # Project documentation
 │── conversation_data.json # Stores conversation history
 │── chatbot_model/     # Model storage directory
-│── rhymath-ui/        # React-based frontend UI
+│── rymath-ui/        # React-based frontend UI
 ```  
 
 ## 🛠️ Setup Instructions  
@@ -25,7 +25,7 @@ pip install -r requirements.txt
 ### 2️⃣ Install Frontend Dependencies  
 Navigate to the frontend folder and install dependencies:  
 ```sh
-cd rhymath-ui  
+cd rymath-ui  
 npm install  
 ```  
 
@@ -53,7 +53,7 @@ uvicorn api:app --host 0.0.0.0 --port 8000 --reload
 ### Start Frontend UI  
 In a separate terminal, start the React frontend:  
 ```sh
-cd rhymath-ui  
+cd rymath-ui  
 npm start  
 ```  
 
@@ -72,20 +72,20 @@ The application will be available at `http://localhost:3000`. 🎯
 ## 🎯 Usage Examples
 ```sh
 User: Write a poem about the ocean
-RhyMath: 🌊 The ocean whispers, deep and wide,
+RyMath: 🌊 The ocean whispers, deep and wide,
         Its waves embrace the changing tide...
 
 User: solve x^2 + 5*x + 6 = 0
-RhyMath: ✅ Solution: x = -2, x = -3
+RyMath: ✅ Solution: x = -2, x = -3
 
 User: differentiate x^3 + 6*x
-RhyMath: ✅ Derivative: 3*x^2 + 6
+RyMath: ✅ Derivative: 3*x^2 + 6
 
 User: integrate sin(x) + x^2
-RhyMath: ✅ Integral: -cos(x) + x^3/3 + C
+RyMath: ✅ Integral: -cos(x) + x^3/3 + C
 
 User: matrix [[1, 2], [3, 4]] determinant
-RhyMath: ✅ Determinant: -2
+RyMath: ✅ Determinant: -2
        ✅ Inverse:
        [[-2  1]
         [ 1 -0.5]]
