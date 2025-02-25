@@ -24,17 +24,37 @@ def chat(request: ChatRequest):
     user_input = request.user_input.strip()
     
     keyword_mapping = {
-        "differentiate": "differentiate",
-        "derivative": "differentiate",
-        "solve": "solve",
-        "simplify": "simplify",
-        "integrate": "integrate",
-        "limit": "limit",
-        "roots": "solve",
-        "find roots": "solve",
-        "zeroes": "solve",
-        "roots of": "solve"
-    }
+    # Differentiation
+    "differentiate": "differentiate",
+    "derivative": "differentiate",
+    "derivatives": "differentiate",
+    "derive": "differentiate",
+    "diff": "differentiate",
+    "d/dx": "differentiate",
+    
+    # Equation Solving / Finding Roots
+    "solve": "solve",
+    "root": "solve",
+    "roots": "solve",
+    "zero": "solve",
+    "zeroes": "solve",
+    "zeros": "solve",
+    
+    # Simplification
+    "simplify": "simplify",
+    "reduction": "simplify",
+    
+    # Integration
+    "integrate": "integrate",
+    "integral": "integrate",
+    "integrals": "integrate",
+    
+    # Limits
+    "limit": "limit",
+    "limits": "limit",
+    "lim": "limit"
+}
+
     
     math_keywords = keyword_mapping.keys()
     detected_operation = None
