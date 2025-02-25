@@ -23,14 +23,6 @@ class ChatRequest(BaseModel):
 def chat(request: ChatRequest):
     user_input = request.user_input.strip()
     
-    # First, check if input contains any math characters/operators.
-    if not re.search(r'[0-9+\-*/^=()]+', user_input):
-        # Process as a normal chatbot request if no math symbols are found.
-        response = chatbot_trainer.generate_response(user_input)
-        print("Chatbot Response:", response)
-        return {"response": response}
-    
-    # Define mapping of keywords to operations.
     keyword_mapping = {
         "differentiate": "differentiate",
         "derivative": "differentiate",
@@ -44,20 +36,25 @@ def chat(request: ChatRequest):
         "roots of": "solve"
     }
     
+    math_keywords = keyword_mapping.keys()
     detected_operation = None
-    for keyword in keyword_mapping:
+    for keyword in math_keywords:
         if keyword in user_input.lower():
             detected_operation = keyword_mapping[keyword]
             break
 
     if detected_operation:
         try:
-            # Updated regex: after the keyword, optionally remove "of" before capturing the math expression.
+            # Pattern to capture math expression following any keyword, optionally preceded by "of"
             pattern = rf"(?:{'|'.join(re.escape(k) for k in keyword_mapping.keys())})\s+(?:of\s+)?([0-9a-zA-Z+\-*/^=()., ]+)"
             match = re.search(pattern, user_input, re.IGNORECASE)
             math_expression = match.group(1).strip() if match else user_input
+            
+            # Remove trailing non-math words like "for", "me", "please" (using word boundary)
+            math_expression = re.sub(r'\s+(for|me|please)\b[\s\?\!\.]*$', '', math_expression, flags=re.IGNORECASE)
+            
             math_result = calculate_math(math_expression, detected_operation)
-            print("Math Result:", math_result)
+            print("Math Result:", math_result)  # Debugging output
             
             return {"response": math_result}
 
@@ -67,7 +64,8 @@ def chat(request: ChatRequest):
 
     # If no math keyword is detected, process it through chatbot
     response = chatbot_trainer.generate_response(user_input)
-    print("Chatbot Response:", response)
+    print("Chatbot Response:", response)  # Debugging output
+
     return {"response": response}
 
 if __name__ == "__main__":
