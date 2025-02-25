@@ -22,7 +22,11 @@ function App() {
 
       setMessages([
         ...newMessages,
-        { user: "RyMath", text: response.data.response, isMath: true },
+        { 
+          user: "RyMath", 
+          text: response?.data?.response || "No response received.", 
+          isMath: true 
+        },
       ]);
     } catch (error) {
       console.error("Error fetching response:", error);
@@ -48,21 +52,22 @@ function App() {
               {msg.isMath ? (
                 <div className="math-message">
                   <MathJax>{"$$" + msg.text + "$$"}</MathJax>
-                 
                 </div>
               ) : (
-                msg.text
+                <span>{msg.text}</span>
               )}
             </div>
           ))}
         </div>
-        <input
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
-          placeholder="Type your message..."
-          onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-        />
-        <button onClick={sendMessage}>Send</button>
+        <div className="input-container">
+          <input
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            placeholder="Type your message..."
+            onKeyDown={(e) => e.key === "Enter" && sendMessage()}
+          />
+          <button onClick={sendMessage}>Send</button>
+        </div>
       </div>
     </MathJaxContext>
   );

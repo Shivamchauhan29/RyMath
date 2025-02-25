@@ -35,6 +35,8 @@ body {
   word-wrap: break-word;
   font-size: 16px;
   position: relative;
+  overflow-wrap: break-word;
+  white-space: normal;
 }
 
 .user {
@@ -60,7 +62,6 @@ body {
   color: black;
   position: relative;
 }
-
 
 .input-container {
   position: fixed;
