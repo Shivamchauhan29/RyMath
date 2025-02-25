@@ -23,19 +23,37 @@ class ChatRequest(BaseModel):
 def chat(request: ChatRequest):
     user_input = request.user_input.strip()
     
-    math_keywords = ["differentiate", "derivative", "solve", "simplify", "integrate", "limit"]
-    detected_keyword = None
+    keyword_mapping = {
+        "differentiate": "differentiate",
+        "derivative": "differentiate",
+        "solve": "solve",
+        "simplify": "simplify",
+        "integrate": "integrate",
+        "limit": "limit",
+        "roots": "solve",
+        "find roots": "solve",
+        "zeroes": "solve",
+        "roots of": "solve"
+    }
     
+    math_keywords = keyword_mapping.keys()
+    detected_operation = None
     for keyword in math_keywords:
         if keyword in user_input.lower():
-            detected_keyword = keyword
+            detected_operation = keyword_mapping[keyword]
             break
-    
-    if detected_keyword:
+
+    if detected_operation:
         try:
-            match = re.search(rf"{detected_keyword}\s+([0-9a-zA-Z+\-*/^=()., ]+)", user_input, re.IGNORECASE)
-            math_expression = match.group(1) if match else user_input
-            math_result = calculate_math(math_expression, detected_keyword)
+            # Pattern to capture math expression following any keyword, optionally preceded by "of"
+            pattern = rf"(?:{'|'.join(re.escape(k) for k in keyword_mapping.keys())})\s+(?:of\s+)?([0-9a-zA-Z+\-*/^=()., ]+)"
+            match = re.search(pattern, user_input, re.IGNORECASE)
+            math_expression = match.group(1).strip() if match else user_input
+            
+            # Remove trailing non-math words like "for", "me", "please" (using word boundary)
+            math_expression = re.sub(r'\s+(for|me|please)\b[\s\?\!\.]*$', '', math_expression, flags=re.IGNORECASE)
+            
+            math_result = calculate_math(math_expression, detected_operation)
             print("Math Result:", math_result)  # Debugging output
             
             return {"response": math_result}
