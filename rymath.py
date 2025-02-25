@@ -111,90 +111,58 @@ def handle_invalid_input(user_input):
         return "Hmm, I didn't quite get that. Could you clarify what you're asking?"
     return None
 
-
-def calculate_math(expression):
-    print('expression:', expression)
+def calculate_math(expression, operation):
+    print('Expression:', expression)
+    print('Operation:', operation)
+    
     try:
-        print('Math function triggered!')
-
         x, y = sp.symbols('x y')
 
-        # Clean the expression:
-        clean_expr = (expression
-                      .replace("differentiate", "")
-                      .replace("derivative", "")
-                      .replace("integrate", "")
-                      .replace("simplify", "")
-                      .replace("solve", "")
-                      .replace("limit", "")
-                      .replace("matrix", "")
-                      .replace("$", "")
-                      .strip())
-        clean_expr = clean_expr.replace("^", "**")
-        clean_expr = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', clean_expr)
+        # Ensure proper formatting
+        expression = expression.replace("^", "**")
+        expression = re.sub(r'(\d)([a-zA-Z])', r'\1*\2', expression)
 
-        steps = []
+        expr = sp.sympify(expression, locals={'x': x, 'y': y})
+        steps = [f"\\text{{Given Expression: }} {sp.latex(expr)}"]
 
-        # Solve Equations (including Trigonometry)
-        if "solve" in expression:
-            if "=" in clean_expr:
-                lhs, rhs = clean_expr.split("=")
+        if operation in ["differentiate", "derivative"]:
+            result = sp.diff(expr, x)
+            steps.append(f"\\text{{Derivative: }} {sp.latex(result)}")
+
+        elif operation == "integrate":
+            result = sp.integrate(expr, x)
+            steps.append(f"\\text{{Integral: }} {sp.latex(result)}")
+
+        elif operation == "solve":
+            if "=" in expression:
+                lhs, rhs = expression.split("=")
+                eq = sp.Eq(sp.sympify(lhs, locals={'x': x, 'y': y}), sp.sympify(rhs, locals={'x': x, 'y': y}))
             else:
-                lhs, rhs = clean_expr, "0"
+                eq = sp.Eq(expr, 0)
+            
+            result = sp.solve(eq, x)
+            steps.append(f"\\text{{Solution: }} {sp.latex(result)}")
 
-            eq = sp.Eq(sp.sympify(lhs, locals={'x': x, 'y': y}),
-                       sp.sympify(rhs, locals={'x': x, 'y': y}))
+        elif operation == "simplify":
+            result = sp.simplify(expr)
+            steps.append(f"\\text{{Simplified Expression: }} {sp.latex(result)}")
 
-            steps.append(f"\\text{{Given Equation: }} {sp.latex(eq)}")
-
-            solution_steps = sp.solve(eq, x, dict=True)
-            for step in solution_steps:
-                steps.append(f"\\text{{Solving: }} {sp.latex(step)}")
-
-            steps.append(f"\\text{{Final Solution: }} {sp.latex(solution_steps)}")
-
-        # Simplification (including Trigonometric)
-        elif "simplify" in expression:
-            expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
-            steps.append(f"\\text{{Original Expression: }} {sp.latex(expr)}")
-            simplified_expr = sp.trigsimp(expr)
-            steps.append(f"\\text{{Step-by-step simplification: }} {sp.latex(simplified_expr)}")
-
-        # Differentiation (including Trigonometry)
-        elif "differentiate" in expression or "derivative" in expression:
-            expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
-            steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
-            derivative = sp.diff(expr, x)
-            steps.append(f"\\text{{Derivative Step: }} {sp.latex(derivative)}")
-
-        # Integration (including Trigonometry)
-        elif "integrate" in expression:
-            expr = sp.sympify(clean_expr, locals={'x': x, 'y': y})
-            steps.append(f"\\text{{Function: }} {sp.latex(expr)}")
-            integral_steps = sp.integrate(expr, x, risch=True)
-            steps.append(f"\\text{{Step-by-step Integration: }} {sp.latex(integral_steps)}")
-
-        # Limit
-        elif "limit" in expression:
+        elif operation == "limit":
             try:
-                limit_expr, point = clean_expr.split(" at ")
-                steps.append(f"\\text{{Limit Expression: }} {sp.latex(sp.sympify(limit_expr, locals={'x': x}))}")
-                limit_result = sp.limit(sp.sympify(limit_expr, locals={'x': x}), x, float(point))
-                steps.append(f"\\text{{Limit Computation: }} {sp.latex(limit_result)}")
+                limit_expr, point = expression.split(" at ")
+                result = sp.limit(sp.sympify(limit_expr, locals={'x': x}), x, float(point))
+                steps.append(f"\\text{{Limit Computation: }} {sp.latex(result)}")
             except ValueError:
                 return "❌ \\text{Invalid limit syntax. Use format: } \\text{limit(expr at point)}"
 
-        # General Math Evaluation
         else:
-            result = sp.sympify(expression, locals={'x': x, 'y': y})
-            steps.append(f"\\text{{Expression: }} {sp.latex(result)}")
+            return "❌ \\text{Unknown operation.}"
 
-        # Convert steps to a structured LaTeX format
+        # Format as LaTeX output
         steps_str = " \\\\ ".join(steps)
-        latex_output = rf"""\begin{{aligned}}
+        return rf"""\begin{{aligned}}
 {steps_str}
 \end{{aligned}}"""
-        return latex_output
 
     except (sp.SympifyError, TypeError, ValueError, IndexError, ZeroDivisionError) as e:
         return f"❌ \\text{{Error: }} {str(e)}"

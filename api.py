@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from rymath import calculate_math, chatbot_trainer  
+import re
 
 app = FastAPI()
 
@@ -21,17 +22,21 @@ class ChatRequest(BaseModel):
 @app.post("/chat")
 def chat(request: ChatRequest):
     user_input = request.user_input.strip()
-    math_keywords = ["solve", "simplify", "differentiate", "integrate", "derivative"]
-
-    # Check if the input contains any math-related keyword
-    if any(keyword in user_input.lower() for keyword in math_keywords):
+    
+    math_keywords = ["differentiate", "derivative", "solve", "simplify", "integrate", "limit"]
+    detected_keyword = None
+    
+    for keyword in math_keywords:
+        if keyword in user_input.lower():
+            detected_keyword = keyword
+            break
+    
+    if detected_keyword:
         try:
-            math_result = calculate_math(user_input)
+            match = re.search(rf"{detected_keyword}\s+([0-9a-zA-Z+\-*/^=()., ]+)", user_input, re.IGNORECASE)
+            math_expression = match.group(1) if match else user_input
+            math_result = calculate_math(math_expression, detected_keyword)
             print("Math Result:", math_result)  # Debugging output
-            
-            # Ensure numeric results are returned properly
-            if isinstance(math_result, (int, float)) or (isinstance(math_result, str) and math_result.replace(".", "").isdigit()):
-                return {"response": str(math_result)}
             
             return {"response": math_result}
 
